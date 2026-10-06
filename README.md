@@ -2,12 +2,12 @@
 
 A personal log of weigh-ins and medications (current and past).
 It runs as an app on your iPhone's Home Screen and your Mac's Dock, works with no
-signal, and keeps the phone and Mac in sync through a private GitHub project.
+signal, and keeps the phone and Mac in sync through a GitHub project.
 
 **Live app:** https://davyrockett.github.io/health-log/ (open in Safari on iPhone → Share → Add to Home Screen)
 
-This project holds only the app. **None of your health data is in it.** Your
-entries live in the private project `davyrockett/health-log-data` and on your devices.
+This project holds only the app. Your entries live in the separate (public)
+project `davyrockett/health-log-data` and on your devices.
 
 ## What's in here
 
@@ -17,7 +17,7 @@ entries live in the private project `davyrockett/health-log-data` and on your de
 | `styles.css` | Colors, sizes, light/dark themes |
 | `app.js` | The app's behavior |
 | `db.js` | Saves data on the device (IndexedDB): weigh-ins and medications |
-| `sync.js` | Keeps devices matched through the private GitHub project |
+| `sync.js` | Keeps devices matched through the GitHub data project |
 | `sw.js` | The "service worker": saves the app on the phone so it works offline |
 | `manifest.webmanifest` | Tells the phone the app's name, icon, and to open full-screen |
 | `icons/` | App icons (redraw with `python3 tools/make-icons.py`) |
@@ -45,7 +45,7 @@ Its data is separate from the live app.
 
 ## Your data and sync
 
-Your data is stored on each device **and** in the private GitHub project
+Your data is stored on each device **and** in the public GitHub project
 `davyrockett/health-log-data` (file `data.json`). Each device syncs when the app
 opens, a moment after you save something, when the connection comes back, and
 every couple of minutes while it's on screen. With no signal, everything is
@@ -55,5 +55,5 @@ saved on the device and syncs later.
 - Deletions sync too, so deleted items don't come back.
 - GitHub keeps every sync as a version, so earlier versions of `data.json` can
   be recovered from the project's history.
-- The access key is stored only in that device's browser storage, and only
-  allows reading and writing the private projects it was given.
+- Anyone can read `data.json`; only the access key can change it. The key is
+  stored only in that device's browser storage.

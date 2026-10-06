@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Health Log</title>
+  <meta name="description" content="Weight and medications, kept in one place.">
+  <meta name="robots" content="noindex">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Health Log">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#f3f5f4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121817" media="(prefers-color-scheme: dark)">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Health Log</h1>
+    <p>Weight and medications, kept in one place.</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" role="tab" id="tab-weight" aria-controls="weight" data-tab="weight">Weight</button>
+    <button class="tab" role="tab" id="tab-meds" aria-controls="meds" data-tab="meds">Medications</button>
+    <button class="tab tab-end" role="tab" id="tab-settings" aria-controls="settings" data-tab="settings">Settings<span class="dot" id="sync-dot" hidden></span></button>
+  </nav>
+
+  <div id="update-banner" class="banner" hidden>
+    <span>A new version is ready.</span>
+    <button type="button" id="update-btn" class="primary small">Update</button>
+  </div>
+  <div id="connect-banner" class="banner" hidden>
+    <span>Connect sync to load your data on this device.</span>
+    <button type="button" class="primary small" data-tab="settings">Set up</button>
+  </div>
+  <p class="notice" id="status" role="alert" hidden></p>
+
+  <section id="weight" role="tabpanel" aria-labelledby="tab-weight">
+    <div class="sec-head"><h2>Weight</h2><span class="meta" id="w-meta">lbs</span></div>
+    <form id="w-form" autocomplete="off">
+      <label class="narrow">Weight (lbs)<input id="w-lbs" type="number" step="0.1" min="1" max="1500" inputmode="decimal" required></label>
+      <label class="narrow">Date<input id="w-date" type="date" required></label>
+      <label>Note<input id="w-note" type="text" maxlength="300" placeholder="Optional, e.g. after workout"></label>
+      <div class="btns">
+        <button class="primary" type="submit" id="w-submit">Add weight</button>
+        <button class="ghost" type="button" id="w-cancel" hidden>Cancel</button>
+      </div>
+    </form>
+    <div id="w-summary"></div>
+    <div id="w-list"></div>
+  </section>
+
+  <section id="meds" role="tabpanel" aria-labelledby="tab-meds" hidden>
+    <div class="sec-head"><h2>Medications</h2><span class="meta" id="m-meta"></span></div>
+    <form id="m-form" autocomplete="off">
+      <label>Medication<input id="m-name" type="text" required placeholder="e.g. Lisinopril"></label>
+      <label class="narrow">Dose<input id="m-dose" type="text" required placeholder="10 mg"></label>
+      <label class="narrow">Frequency<input id="m-freq" type="text" list="freq-options" required placeholder="Once daily"></label>
+      <label class="narrow">Date started<input id="m-start" type="date"></label>
+      <label class="narrow">Date ended<input id="m-end" type="date" title="Leave blank if you still take it"></label>
+      <div class="btns">
+        <button class="primary" type="submit" id="m-submit">Add medication</button>
+        <button class="ghost" type="button" id="m-cancel" hidden>Cancel</button>
+      </div>
+      <datalist id="freq-options">
+        <option value="Daily"><option value="Once daily"><option value="Twice daily"><option value="Three times daily">
+        <option value="Every morning"><option value="Every night"><option value="Weekly"><option value="As needed">
+      </datalist>
+    </form>
+    <div id="m-list"></div>
+  </section>
+
+  <section id="settings" role="tabpanel" aria-labelledby="tab-settings" hidden>
+    <div class="sec-head"><h2>Settings</h2><span class="meta" id="app-version"></span></div>
+
+    <div class="card">
+      <h3>Sync</h3>
+      <div id="sync-on" hidden>
+        <p>Syncing with <strong id="sync-repo"></strong></p>
+        <p class="sync-status" id="sync-status" aria-live="polite"></p>
+        <div class="btns">
+          <button type="button" class="primary" id="sync-now">Sync now</button>
+          <button type="button" class="ghost" id="sync-disconnect">Turn off sync on this device</button>
+        </div>
+        <div class="confirm-box" id="disconnect-confirm" hidden>
+          <p>Turn off sync on this device? Your data stays here, but it stops matching your other devices. You'll need the access key to turn it back on.</p>
+          <div class="btns">
+            <button type="button" class="danger-btn" id="disconnect-yes">Turn off</button>
+            <button type="button" class="ghost" id="disconnect-no">Keep syncing</button>
+          </div>
+        </div>
+      </div>
+
+      <form id="sync-off" autocomplete="off" hidden>
+        <p class="muted">Your data is kept in a private GitHub project, and every device you connect stays matched with it. Set it up once on each device.</p>
+        <label class="field">Private data project
+          <input type="text" name="repo" value="davyrockett/health-log-data" autocapitalize="off" spellcheck="false">
+        </label>
+        <label class="field">Access key
+          <input type="password" name="token" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="github_pat_…">
+        </label>
+        <p class="notice" id="sync-error" role="alert" hidden></p>
+        <div class="btns"><button type="submit" class="primary">Connect</button></div>
+        <details class="howto">
+          <summary>How to get an access key</summary>
+          <p><strong>Easiest:</strong> add this project to your Z4 Log key, then paste that same key here.</p>
+          <ol>
+            <li>On github.com, go to <strong>Settings → Developer settings → Personal access tokens → Fine-grained tokens</strong>.</li>
+            <li>Open <strong>Z4 Log sync</strong>, then <strong>Edit</strong>.</li>
+            <li>Under <strong>Repository access</strong>, add <strong>health-log-data</strong>. Save.</li>
+          </ol>
+          <p><strong>Or make a separate key:</strong> Generate new token, name it “Health Log sync”, choose <strong>Only select repositories → health-log-data</strong>, and set <strong>Repository permissions → Contents</strong> to <strong>Read and write</strong>.</p>
+        </details>
+      </form>
+    </div>
+
+    <div class="card">
+      <h3>This device</h3>
+      <dl class="facts">
+        <dt>Added to Home Screen</dt><dd id="fact-installed">—</dd>
+        <dt>Works offline</dt><dd id="fact-offline">—</dd>
+      </dl>
+      <p class="muted">On iPhone: open this page in Safari, tap Share, then <strong>Add to Home Screen</strong>. On Mac: Safari → File → <strong>Add to Dock</strong>.</p>
+    </div>
+  </section>
+</div>
+
+<script src="db.js"></script>
+<script src="sync.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

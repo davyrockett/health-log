@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v6';
+const APP_VERSION = 'v7';
 
 const $ = (id) => document.getElementById(id);
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
@@ -48,7 +48,7 @@ function renderWeights() {
   $('w-meta').textContent = sorted.length ? `${sorted.length} ${sorted.length === 1 ? 'entry' : 'entries'} · lbs` : 'lbs';
   if (!sorted.length) {
     $('w-summary').innerHTML = '';
-    $('w-list').innerHTML = loaded ? `<div class="empty">No weigh-ins yet. Tap <b>Add weight</b> to log your first weigh-in. A trend line appears once you have two entries.</div>` : '';
+    $('w-list').innerHTML = loaded ? `<div class="empty">No weigh-ins yet. Tap <b>Add Weight</b> to log your first weigh-in. A trend line appears once you have two entries.</div>` : '';
     return;
   }
   const latest = sorted[0], first = sorted[sorted.length - 1];
@@ -167,14 +167,14 @@ async function loadAll() {
 
 // Each tab shows only its Add button until you tap it (or Edit on a row).
 function openForm(pre, focusId) {
-  $(pre + '-open').hidden = true;
+  $(pre + '-open').parentElement.hidden = true;
   $(pre + '-form').hidden = false;
   $(pre + '-form').scrollIntoView({ block: 'nearest' });
   $(focusId).focus();
 }
 function closeForm(pre) {
   $(pre + '-form').hidden = true;
-  $(pre + '-open').hidden = false;
+  $(pre + '-open').parentElement.hidden = false;
 }
 
 function resetMedForm() {

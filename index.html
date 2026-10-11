@@ -44,7 +44,7 @@
 
   <section id="weight" role="tabpanel" aria-labelledby="tab-weight">
     <div class="sec-head"><h2>Weight</h2><span class="meta" id="w-meta">lbs</span></div>
-    <div><button class="primary" type="button" id="w-open">Add weight</button></div>
+    <div class="add-row"><button class="primary" type="button" id="w-open">Add Weight</button></div>
     <form id="w-form" autocomplete="off" hidden>
       <label class="narrow">Weight (lbs)<input id="w-lbs" type="number" step="0.1" min="1" max="1500" inputmode="decimal" required></label>
       <label class="narrow">Date<input id="w-date" type="date" required></label>
@@ -60,7 +60,7 @@
 
   <section id="meds" role="tabpanel" aria-labelledby="tab-meds" hidden>
     <div class="sec-head"><h2>Medications</h2><span class="meta" id="m-meta"></span></div>
-    <div><button class="primary" type="button" id="m-open">Add medication</button></div>
+    <div class="add-row"><button class="primary" type="button" id="m-open">Add Medication</button></div>
     <form id="m-form" autocomplete="off" hidden>
       <label>Medication<input id="m-name" type="text" required placeholder="e.g. Lisinopril"></label>
       <label class="narrow">Dose<input id="m-dose" type="text" required placeholder="10 mg"></label>
@@ -81,7 +81,7 @@
 
   <section id="appts" role="tabpanel" aria-labelledby="tab-appts" hidden>
     <div class="sec-head"><h2>Doctor’s appointments</h2><span class="meta" id="a-meta"></span></div>
-    <div><button class="primary" type="button" id="a-open">Add appointment</button></div>
+    <div class="add-row"><button class="primary" type="button" id="a-open">Add Appointment</button></div>
     <form id="a-form" autocomplete="off" hidden>
       <label class="narrow">Date<input id="a-date" type="date" required></label>
       <label>Reason<input id="a-reason" type="text" maxlength="300" required placeholder="e.g. Annual checkup"></label>

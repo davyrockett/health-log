@@ -38,7 +38,8 @@ header p { margin: 4px 0 0; color: var(--muted); }
 .tab { background: none; border: none; border-bottom: 3px solid transparent; border-radius: 0; margin-bottom: -1px; padding: 10px 12px; font: 600 15px var(--body); color: var(--muted); position: relative; }
 .tab:hover { color: var(--fg); }
 .tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); }
-.tab-end { margin-left: auto; }
+.tab-end { margin-left: auto; display: inline-flex; align-items: center; justify-content: center; min-width: 44px; }
+.gear { display: block; }
 .dot { position: absolute; top: 8px; right: 2px; width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
 
 section { display: grid; gap: 16px; }

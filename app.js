@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v4';
+const APP_VERSION = 'v5';
 
 const $ = (id) => document.getElementById(id);
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };

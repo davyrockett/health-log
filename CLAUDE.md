@@ -46,6 +46,9 @@ David's personal log of weigh-ins, medications and doctor's appointments (v3: da
 upcoming shown first, then past; results can be filled in after the visit). Live: https://davyrockett.github.io/health-log/
 See README.md.
 
+- **Keeps its own look on purpose.** David likes this app as is: its green design, Settings as a gear icon, no
+  Light/Dark/Auto choice or Check for updates button, no subheading under the title. Don't bring it in line
+  with the shared First Frets style unless he asks.
 - **Publish:** bump `VERSION` in `sw.js` and match `APP_VERSION` in `app.js`, commit, push, confirm live.
 - **Test locally:** `python3 -m http.server 8768` here, open http://localhost:8768/. Local data is separate.
 - Files: `index.html`, `styles.css`, `app.js`, `db.js` (IndexedDB), `sync.js` (GitHub sync).

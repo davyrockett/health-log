@@ -44,13 +44,14 @@
 
   <section id="weight" role="tabpanel" aria-labelledby="tab-weight">
     <div class="sec-head"><h2>Weight</h2><span class="meta" id="w-meta">lbs</span></div>
-    <form id="w-form" autocomplete="off">
+    <div><button class="primary" type="button" id="w-open">Add weight</button></div>
+    <form id="w-form" autocomplete="off" hidden>
       <label class="narrow">Weight (lbs)<input id="w-lbs" type="number" step="0.1" min="1" max="1500" inputmode="decimal" required></label>
       <label class="narrow">Date<input id="w-date" type="date" required></label>
       <label>Note<input id="w-note" type="text" maxlength="300" placeholder="Optional, e.g. after workout"></label>
       <div class="btns">
-        <button class="primary" type="submit" id="w-submit">Add weight</button>
-        <button class="ghost" type="button" id="w-cancel" hidden>Cancel</button>
+        <button class="primary" type="submit" id="w-submit">Save</button>
+        <button class="ghost" type="button" id="w-cancel">Cancel</button>
       </div>
     </form>
     <div id="w-summary"></div>
@@ -59,15 +60,16 @@
 
   <section id="meds" role="tabpanel" aria-labelledby="tab-meds" hidden>
     <div class="sec-head"><h2>Medications</h2><span class="meta" id="m-meta"></span></div>
-    <form id="m-form" autocomplete="off">
+    <div><button class="primary" type="button" id="m-open">Add medication</button></div>
+    <form id="m-form" autocomplete="off" hidden>
       <label>Medication<input id="m-name" type="text" required placeholder="e.g. Lisinopril"></label>
       <label class="narrow">Dose<input id="m-dose" type="text" required placeholder="10 mg"></label>
       <label class="narrow">Frequency<input id="m-freq" type="text" list="freq-options" required placeholder="Once daily"></label>
       <label class="narrow">Date started<input id="m-start" type="date"></label>
       <label class="narrow">Date ended<input id="m-end" type="date" title="Leave blank if you still take it"></label>
       <div class="btns">
-        <button class="primary" type="submit" id="m-submit">Add medication</button>
-        <button class="ghost" type="button" id="m-cancel" hidden>Cancel</button>
+        <button class="primary" type="submit" id="m-submit">Save</button>
+        <button class="ghost" type="button" id="m-cancel">Cancel</button>
       </div>
       <datalist id="freq-options">
         <option value="Daily"><option value="Once daily"><option value="Twice daily"><option value="Three times daily">
@@ -79,13 +81,14 @@
 
   <section id="appts" role="tabpanel" aria-labelledby="tab-appts" hidden>
     <div class="sec-head"><h2>Doctor’s appointments</h2><span class="meta" id="a-meta"></span></div>
-    <form id="a-form" autocomplete="off">
+    <div><button class="primary" type="button" id="a-open">Add appointment</button></div>
+    <form id="a-form" autocomplete="off" hidden>
       <label class="narrow">Date<input id="a-date" type="date" required></label>
       <label>Reason<input id="a-reason" type="text" maxlength="300" required placeholder="e.g. Annual checkup"></label>
       <label class="wide">Results<textarea id="a-results" rows="3" maxlength="4000" placeholder="Optional. Add after the visit: what the doctor said, test results, next steps"></textarea></label>
       <div class="btns">
-        <button class="primary" type="submit" id="a-submit">Add appointment</button>
-        <button class="ghost" type="button" id="a-cancel" hidden>Cancel</button>
+        <button class="primary" type="submit" id="a-submit">Save</button>
+        <button class="ghost" type="button" id="a-cancel">Cancel</button>
       </div>
     </form>
     <div id="a-list"></div>

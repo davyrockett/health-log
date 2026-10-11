@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v5';
+const APP_VERSION = 'v6';
 
 const $ = (id) => document.getElementById(id);
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
@@ -48,7 +48,7 @@ function renderWeights() {
   $('w-meta').textContent = sorted.length ? `${sorted.length} ${sorted.length === 1 ? 'entry' : 'entries'} · lbs` : 'lbs';
   if (!sorted.length) {
     $('w-summary').innerHTML = '';
-    $('w-list').innerHTML = loaded ? `<div class="empty">No weigh-ins yet. Enter your weight and the date above, then press <b>Add weight</b>. A trend line appears once you have two entries.</div>` : '';
+    $('w-list').innerHTML = loaded ? `<div class="empty">No weigh-ins yet. Tap <b>Add weight</b> to log your first weigh-in. A trend line appears once you have two entries.</div>` : '';
     return;
   }
   const latest = sorted[0], first = sorted[sorted.length - 1];
@@ -165,25 +165,37 @@ async function loadAll() {
   renderAll();
 }
 
+// Each tab shows only its Add button until you tap it (or Edit on a row).
+function openForm(pre, focusId) {
+  $(pre + '-open').hidden = true;
+  $(pre + '-form').hidden = false;
+  $(pre + '-form').scrollIntoView({ block: 'nearest' });
+  $(focusId).focus();
+}
+function closeForm(pre) {
+  $(pre + '-form').hidden = true;
+  $(pre + '-open').hidden = false;
+}
+
 function resetMedForm() {
   editingMed = null;
   $('m-form').reset();
-  $('m-submit').textContent = 'Add medication';
-  $('m-cancel').hidden = true;
+  $('m-submit').textContent = 'Save';
+  closeForm('m');
 }
 function resetApptForm() {
   editingAppt = null;
   $('a-form').reset();
   $('a-date').value = today();
-  $('a-submit').textContent = 'Add appointment';
-  $('a-cancel').hidden = true;
+  $('a-submit').textContent = 'Save';
+  closeForm('a');
 }
 function resetWeightForm() {
   editingWeight = null;
   $('w-form').reset();
   $('w-date').value = today();
-  $('w-submit').textContent = 'Add weight';
-  $('w-cancel').hidden = true;
+  $('w-submit').textContent = 'Save';
+  closeForm('w');
 }
 
 /* ---------- Editing ---------- */
@@ -205,30 +217,30 @@ document.addEventListener('click', async (e) => {
     editingMed = m.id;
     $('m-name').value = m.name; $('m-dose').value = m.dose; $('m-freq').value = m.frequency;
     $('m-start').value = m.started || ''; $('m-end').value = m.ended || '';
-    $('m-submit').textContent = 'Save changes'; $('m-cancel').hidden = false;
-    $('m-form').scrollIntoView({ block: 'nearest' });
-    $('m-name').focus();
+    $('m-submit').textContent = 'Save changes';
+    openForm('m', 'm-name');
   }
   if (t.dataset.aedit) {
     const a = appts.find((x) => x.id === t.dataset.aedit); if (!a) return;
     editingAppt = a.id;
     $('a-date').value = a.date; $('a-reason').value = a.reason; $('a-results').value = a.results || '';
-    $('a-submit').textContent = 'Save changes'; $('a-cancel').hidden = false;
-    $('a-form').scrollIntoView({ block: 'nearest' });
-    $('a-results').focus();
+    $('a-submit').textContent = 'Save changes';
+    openForm('a', 'a-results');
   }
   if (t.dataset.wedit) {
     const w = weights.find((x) => x.id === t.dataset.wedit); if (!w) return;
     editingWeight = w.id;
     $('w-lbs').value = w.lbs; $('w-date').value = w.date; $('w-note').value = w.note || '';
-    $('w-submit').textContent = 'Save changes'; $('w-cancel').hidden = false;
-    $('w-form').scrollIntoView({ block: 'nearest' });
-    $('w-note').focus();
+    $('w-submit').textContent = 'Save changes';
+    openForm('w', 'w-note');
   }
 });
 $('m-cancel').addEventListener('click', resetMedForm);
 $('w-cancel').addEventListener('click', resetWeightForm);
 $('a-cancel').addEventListener('click', resetApptForm);
+$('w-open').addEventListener('click', () => { resetWeightForm(); openForm('w', 'w-lbs'); });
+$('m-open').addEventListener('click', () => { resetMedForm(); openForm('m', 'm-name'); });
+$('a-open').addEventListener('click', () => { resetApptForm(); openForm('a', 'a-date'); });
 
 $('a-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -249,8 +261,7 @@ $('w-form').addEventListener('submit', async (e) => {
   if (!(lbs > 0) || !date) return;
   try {
     await db.put('weights', { id: editingWeight || newId(), lbs, date, note, updatedAt: new Date().toISOString() });
-    if (editingWeight) resetWeightForm();
-    else { $('w-lbs').value = ''; $('w-note').value = ''; }
+    resetWeightForm();
     status('');
   } catch (err) { status('Couldn’t save that weight. Try again.'); }
   await loadAll();

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Health Log</title>
-  <meta name="description" content="Weight and medications, kept in one place.">
+  <meta name="description" content="Weight, medications and doctor's appointments, kept in one place.">
   <meta name="robots" content="noindex">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
@@ -23,12 +23,13 @@
 <div class="wrap">
   <header>
     <h1>Health Log</h1>
-    <p>Weight and medications, kept in one place.</p>
+    <p>Weight, medications and doctor’s appointments, kept in one place.</p>
   </header>
 
   <nav class="tabs" role="tablist" aria-label="Sections">
     <button class="tab" role="tab" id="tab-weight" aria-controls="weight" data-tab="weight">Weight</button>
     <button class="tab" role="tab" id="tab-meds" aria-controls="meds" data-tab="meds">Medications</button>
+    <button class="tab" role="tab" id="tab-appts" aria-controls="appts" data-tab="appts">Appointments</button>
     <button class="tab tab-end" role="tab" id="tab-settings" aria-controls="settings" data-tab="settings">Settings<span class="dot" id="sync-dot" hidden></span></button>
   </nav>
 
@@ -75,6 +76,20 @@
       </datalist>
     </form>
     <div id="m-list"></div>
+  </section>
+
+  <section id="appts" role="tabpanel" aria-labelledby="tab-appts" hidden>
+    <div class="sec-head"><h2>Doctor’s appointments</h2><span class="meta" id="a-meta"></span></div>
+    <form id="a-form" autocomplete="off">
+      <label class="narrow">Date<input id="a-date" type="date" required></label>
+      <label>Reason<input id="a-reason" type="text" maxlength="300" required placeholder="e.g. Annual checkup"></label>
+      <label class="wide">Results<textarea id="a-results" rows="3" maxlength="4000" placeholder="Optional. Add after the visit: what the doctor said, test results, next steps"></textarea></label>
+      <div class="btns">
+        <button class="primary" type="submit" id="a-submit">Add appointment</button>
+        <button class="ghost" type="button" id="a-cancel" hidden>Cancel</button>
+      </div>
+    </form>
+    <div id="a-list"></div>
   </section>
 
   <section id="settings" role="tabpanel" aria-labelledby="tab-settings" hidden>

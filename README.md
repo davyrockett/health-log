@@ -1,6 +1,7 @@
 # Health Log
 
-A personal log of weigh-ins and medications (current and past).
+A personal log of weigh-ins, medications (current and past) and doctor's appointments
+(date, reason, and results).
 It runs as an app on your iPhone's Home Screen and your Mac's Dock, works with no
 signal, and keeps the phone and Mac in sync through a GitHub project.
 
@@ -13,10 +14,10 @@ project `davyrockett/health-log-data` and on your devices.
 
 | File | What it does |
 |---|---|
-| `index.html` | The page itself: tabs for Weight, Medications and Settings |
+| `index.html` | The page itself: tabs for Weight, Medications, Appointments and Settings |
 | `styles.css` | Colors, sizes, light/dark themes |
 | `app.js` | The app's behavior |
-| `db.js` | Saves data on the device (IndexedDB): weigh-ins and medications |
+| `db.js` | Saves data on the device (IndexedDB): weigh-ins, medications and appointments |
 | `sync.js` | Keeps devices matched through the GitHub data project |
 | `sw.js` | The "service worker": saves the app on the phone so it works offline |
 | `manifest.webmanifest` | Tells the phone the app's name, icon, and to open full-screen |

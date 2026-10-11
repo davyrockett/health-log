@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v2';
+const APP_VERSION = 'v3';
 
 const $ = (id) => document.getElementById(id);
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
@@ -9,14 +9,15 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const status = (msg) => { $('status').textContent = msg || ''; $('status').hidden = !msg; };
 const sign = (x) => (x > 0 ? '+' : x < 0 ? '−' : '±');
 
-let weights = [], meds = [], loaded = false;
-let editingMed = null, editingWeight = null, confirming = null;
+let weights = [], meds = [], appts = [], loaded = false;
+let editingMed = null, editingWeight = null, editingAppt = null, confirming = null;
 
 $('w-date').value = today();
+$('a-date').value = today();
 $('app-version').textContent = APP_VERSION;
 
 /* ---------- Tabs ---------- */
-const TABS = ['weight', 'meds', 'settings'];
+const TABS = ['weight', 'meds', 'appts', 'settings'];
 function showTab(name, remember = true) {
   if (!TABS.includes(name)) name = 'weight';
   for (const t of TABS) {
@@ -124,6 +125,27 @@ function renderMeds() {
     : `<div class="empty">Nothing here yet. To move a medication here, edit it and add the date you stopped taking it.</div>`}`;
 }
 
+/* ---------- Doctor's appointments ---------- */
+// Upcoming ones (today or later) first, soonest at the top; then past ones, newest first.
+function renderAppts() {
+  const t = today();
+  const upcoming = appts.filter((a) => a.date >= t).sort((a, b) => a.date.localeCompare(b.date));
+  const past = appts.filter((a) => a.date < t).sort((a, b) => b.date.localeCompare(a.date) || (b.updatedAt || '').localeCompare(a.updatedAt || ''));
+  $('a-meta').textContent = appts.length ? `${upcoming.length} upcoming · ${past.length} past` : '';
+  if (!appts.length) {
+    $('a-list').innerHTML = loaded ? `<div class="empty">No appointments yet. Add the date and the reason for the visit; you can fill in the results afterwards with <b>Edit</b>.</div>` : '';
+    return;
+  }
+  const card = (a, isUpcoming) => `<div class="appt${isUpcoming ? ' upcoming' : ''}">
+      <div class="appt-top"><span class="appt-date">${esc(fmtDate(a.date))}</span><span class="act"><button class="link" data-aedit="${esc(a.id)}">Edit</button>${delBtn('appts', a.id)}</span></div>
+      <div class="appt-reason">${esc(a.reason)}</div>
+      ${a.results ? `<p class="appt-results">${esc(a.results)}</p>` : `<p class="appt-results none">${isUpcoming ? 'Results can be added after the visit.' : 'No results added.'}</p>`}
+    </div>`;
+  $('a-list').innerHTML = `
+    ${upcoming.length ? `<h3 class="sub">Upcoming</h3>${upcoming.map((a) => card(a, true)).join('')}` : ''}
+    ${past.length ? `<h3 class="sub">Past</h3>${past.map((a) => card(a, false)).join('')}` : ''}`;
+}
+
 function delBtn(store, id) {
   if (confirming === store + ':' + id)
     return `<span class="confirm">Delete?<button class="link danger" data-confirm="${store}:${esc(id)}">Yes</button><button class="link" data-cancel>No</button></span>`;
@@ -133,11 +155,12 @@ function delBtn(store, id) {
 function renderAll() {
   renderWeights();
   renderMeds();
-  $('connect-banner').hidden = !(loaded && !sync.isOn() && !weights.length && !meds.length);
+  renderAppts();
+  $('connect-banner').hidden = !(loaded && !sync.isOn() && !weights.length && !meds.length && !appts.length);
 }
 
 async function loadAll() {
-  [weights, meds] = await Promise.all([db.getAll('weights'), db.getAll('meds')]);
+  [weights, meds, appts] = await Promise.all([db.getAll('weights'), db.getAll('meds'), db.getAll('appts')]);
   loaded = true;
   renderAll();
 }
@@ -147,6 +170,13 @@ function resetMedForm() {
   $('m-form').reset();
   $('m-submit').textContent = 'Add medication';
   $('m-cancel').hidden = true;
+}
+function resetApptForm() {
+  editingAppt = null;
+  $('a-form').reset();
+  $('a-date').value = today();
+  $('a-submit').textContent = 'Add appointment';
+  $('a-cancel').hidden = true;
 }
 function resetWeightForm() {
   editingWeight = null;
@@ -179,6 +209,14 @@ document.addEventListener('click', async (e) => {
     $('m-form').scrollIntoView({ block: 'nearest' });
     $('m-name').focus();
   }
+  if (t.dataset.aedit) {
+    const a = appts.find((x) => x.id === t.dataset.aedit); if (!a) return;
+    editingAppt = a.id;
+    $('a-date').value = a.date; $('a-reason').value = a.reason; $('a-results').value = a.results || '';
+    $('a-submit').textContent = 'Save changes'; $('a-cancel').hidden = false;
+    $('a-form').scrollIntoView({ block: 'nearest' });
+    $('a-results').focus();
+  }
   if (t.dataset.wedit) {
     const w = weights.find((x) => x.id === t.dataset.wedit); if (!w) return;
     editingWeight = w.id;
@@ -190,6 +228,18 @@ document.addEventListener('click', async (e) => {
 });
 $('m-cancel').addEventListener('click', resetMedForm);
 $('w-cancel').addEventListener('click', resetWeightForm);
+$('a-cancel').addEventListener('click', resetApptForm);
+
+$('a-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const body = { date: $('a-date').value, reason: $('a-reason').value.trim(), results: $('a-results').value.trim() };
+  if (!body.date || !body.reason) return;
+  try {
+    await db.put('appts', { id: editingAppt || newId(), ...body, updatedAt: new Date().toISOString() });
+    resetApptForm(); status('');
+  } catch (err) { status('Couldn’t save that appointment. Try again.'); }
+  await loadAll();
+});
 
 $('w-form').addEventListener('submit', async (e) => {
   e.preventDefault();

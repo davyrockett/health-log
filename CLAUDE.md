@@ -42,7 +42,8 @@ with this section (copy it from any other app) plus an "## This app" section.
 
 ## This app
 
-David's personal log of weigh-ins and medications. Live: https://davyrockett.github.io/health-log/
+David's personal log of weigh-ins, medications and doctor's appointments (v3: date, reason, results;
+upcoming shown first, then past; results can be filled in after the visit). Live: https://davyrockett.github.io/health-log/
 See README.md.
 
 - **Publish:** bump `VERSION` in `sw.js` and match `APP_VERSION` in `app.js`, commit, push, confirm live.

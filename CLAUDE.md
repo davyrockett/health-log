@@ -52,7 +52,7 @@ with this section (copy it from any other app) plus an "## This app" section.
 ## This app
 
 David's personal log of weigh-ins, medications and doctor's appointments (v3: date, reason, results;
-upcoming shown first, then past; results can be filled in after the visit). Live: https://davyrockett.github.io/health-log/
+upcoming shown first, then past; results can be filled in after the visit). Live: https://www.davyrockett.com/health-log/
 See README.md.
 
 - **Keeps its own look on purpose.** David likes this app as is: its green design, Settings as a gear icon, no

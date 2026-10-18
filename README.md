@@ -5,7 +5,7 @@ A personal log of weigh-ins, medications (current and past) and doctor's appoint
 It runs as an app on your iPhone's Home Screen and your Mac's Dock, works with no
 signal, and keeps the phone and Mac in sync through a GitHub project.
 
-**Live app:** https://davyrockett.github.io/health-log/ (open in Safari on iPhone → Share → Add to Home Screen)
+**Live app:** https://www.davyrockett.com/health-log/ (open in Safari on iPhone → Share → Add to Home Screen)
 
 This project holds only the app. Your entries live in the separate (public)
 project `davyrockett/health-log-data` and on your devices.

@@ -2,12 +2,13 @@
 //
 // IMPORTANT: whenever any file below changes, bump VERSION.
 // That is how phones learn there's an update to download.
-const VERSION = 'v7';
+const VERSION = 'v8';
 const CACHE = `healthlog-${VERSION}`;
 
 const ASSETS = [
   './',
   './index.html',
+  './move.js',
   './styles.css',
   './db.js',
   './sync.js',

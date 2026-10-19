@@ -59,7 +59,7 @@ website repo, `Claude Apps/website`): icon, name and one-line description, in th
 ## This app
 
 David's personal log of weigh-ins, medications and doctor's appointments (v3: date, reason, results;
-upcoming shown first, then past; results can be filled in after the visit) and headaches (v10; v11 a calendar to pick several days, one entry per day: date, optional start
+upcoming shown first, then past; results can be filled in after the visit) and headaches (v10; v11 a calendar to pick several days; v12, David's call: several days = ONE headache, `days` array + `date` = first day: days, optional start
 time, pain 1–10, how long, medicine taken, notes; newest first, with a last-30-days count and average pain). Live: https://www.davyrockett.com/health-log/
 See README.md.
 

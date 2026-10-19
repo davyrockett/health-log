@@ -1,7 +1,7 @@
 # Health Log
 
 A personal log of weigh-ins, medications (current and past), doctor's appointments
-(date, reason, and results) and headaches (one or more days picked on a calendar, time, pain 1–10, how long, medicine taken, notes).
+(date, reason, and results) and headaches (one or more days picked on a calendar, kept as one headache; time, pain 1–10, how long, medicine taken, notes).
 It runs as an app on your iPhone's Home Screen and your Mac's Dock, works with no
 signal, and keeps the phone and Mac in sync through a GitHub project.
 

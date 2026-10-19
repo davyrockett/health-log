@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v11';
+const APP_VERSION = 'v12';
 
 const $ = (id) => document.getElementById(id);
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
@@ -147,11 +147,11 @@ function renderAppts() {
 }
 
 /* ---------- Headaches ---------- */
-// A small calendar for choosing one or more days (up to today). Each day becomes its own entry.
+// A small calendar for choosing one or more days (up to today). One headache can cover several days.
 let calSel = new Set(), calMonth = null;
 function calPick(days) {
   calSel = new Set(days);
-  const [y, m] = days[0].split('-').map(Number);
+  const [y, m] = [...days].sort().at(-1).split('-').map(Number);
   calMonth = new Date(y, m - 1, 1);
   renderCal();
 }
@@ -183,8 +183,20 @@ calPick([today()]);
 
 // Newest first, with a count and average pain for the last 30 days.
 const fmtTime = (s) => { if (!s) return ''; const [h, m] = s.split(':').map(Number); return new Date(2000, 0, 1, h, m).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
+// A headache's days (older entries have just `date`), and how to show them:
+// runs of neighbouring days are joined, e.g. "Oct 17 – 19, 2026, Oct 22, 2026".
+const hDays = (h) => (h.days && h.days.length ? h.days : [h.date]);
+const lastDay = (h) => hDays(h).at(-1);
+function fmtDays(days) {
+  const next = (s) => { const [y, m, d] = s.split('-').map(Number); const x = new Date(y, m - 1, d + 1); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; };
+  const runs = [];
+  for (const d of days) { const r = runs.at(-1); if (r && next(r[1]) === d) r[1] = d; else runs.push([d, d]); }
+  const md = (s) => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); };
+  return runs.map(([a, b]) => (a === b ? fmtDate(a)
+    : `${md(a)} – ${a.slice(0, 7) === b.slice(0, 7) ? Number(b.slice(8)) : md(b)}, ${b.slice(0, 4)}`)).join(', ');
+}
 function renderHeads() {
-  const sorted = [...heads].sort((a, b) => b.date.localeCompare(a.date) || (b.time || '').localeCompare(a.time || ''));
+  const sorted = [...heads].sort((a, b) => lastDay(b).localeCompare(lastDay(a)) || (b.time || '').localeCompare(a.time || ''));
   $('h-meta').textContent = heads.length ? `${heads.length} logged` : '';
   if (!sorted.length) {
     $('h-summary').innerHTML = '';
@@ -192,15 +204,16 @@ function renderHeads() {
     return;
   }
   const d = new Date(); d.setDate(d.getDate() - 29); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-  const recent = sorted.filter((x) => x.date >= d.toISOString().slice(0, 10) && x.date <= today());
+  const from = d.toISOString().slice(0, 10);
+  const recent = sorted.filter((x) => hDays(x).some((day) => day >= from && day <= today()));
   const avg = recent.length ? recent.reduce((s, x) => s + x.pain, 0) / recent.length : 0;
   $('h-summary').innerHTML = `<div class="summary">
       <div class="stat"><div class="k">Last 30 days</div><div class="v">${recent.length}<small>${recent.length === 1 ? 'headache' : 'headaches'}</small></div></div>
       ${recent.length ? `<div class="stat"><div class="k">Average pain</div><div class="v">${avg.toFixed(1)}<small>/ 10</small></div></div>` : ''}
-      <div class="stat"><div class="k">Last one</div><div class="v" style="font-size:1.3rem">${esc(fmtDate(sorted[0].date))}</div></div>
+      <div class="stat"><div class="k">Last one</div><div class="v" style="font-size:1.3rem">${esc(fmtDate(lastDay(sorted[0])))}</div></div>
     </div>`;
   $('h-list').innerHTML = sorted.map((h) => `<div class="appt">
-      <div class="appt-top"><span class="appt-date">${esc(fmtDate(h.date))}${h.time ? ` · ${esc(fmtTime(h.time))}` : ''}</span><span class="act"><button class="link" data-hedit="${esc(h.id)}">Edit</button>${delBtn('heads', h.id)}</span></div>
+      <div class="appt-top"><span class="appt-date">${esc(fmtDays(hDays(h)))}${h.time ? ` · ${esc(fmtTime(h.time))}` : ''}</span><span class="act"><button class="link" data-hedit="${esc(h.id)}">Edit</button>${delBtn('heads', h.id)}</span></div>
       <div class="appt-reason"><span class="pain p${Math.min(3, Math.ceil(h.pain / 3.4))}">Pain ${h.pain}/10</span>${h.duration ? ` <span class="muted">· ${esc(h.duration)}</span>` : ''}</div>
       ${h.medicine ? `<div>Medicine: ${esc(h.medicine)}</div>` : ''}
       ${h.note ? `<p class="appt-results">${esc(h.note)}</p>` : ''}
@@ -299,7 +312,7 @@ document.addEventListener('click', async (e) => {
   if (t.dataset.hedit) {
     const h = heads.find((x) => x.id === t.dataset.hedit); if (!h) return;
     editingHead = h.id;
-    calPick([h.date]); $('h-time').value = h.time || ''; $('h-pain').value = String(h.pain);
+    calPick(hDays(h)); $('h-time').value = h.time || ''; $('h-pain').value = String(h.pain);
     $('h-dur').value = h.duration || ''; $('h-med').value = h.medicine || ''; $('h-note').value = h.note || '';
     $('h-submit').textContent = 'Save changes';
     openForm('h', 'h-note');
@@ -339,9 +352,7 @@ $('h-form').addEventListener('submit', async (e) => {
   if (!days.length) { status('Choose at least one day.'); return; }
   if (!(body.pain >= 1 && body.pain <= 10)) return;
   try {
-    // One entry per day chosen. When editing, the first day keeps the original entry.
-    const now = new Date().toISOString();
-    for (const [i, date] of days.entries()) await db.put('heads', { id: (i === 0 && editingHead) || newId(), date, ...body, updatedAt: now });
+    await db.put('heads', { id: editingHead || newId(), date: days[0], days, ...body, updatedAt: new Date().toISOString() });
     resetHeadForm(); status('');
   } catch (err) { status('Couldn’t save that headache. Try again.'); }
   await loadAll();

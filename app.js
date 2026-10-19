@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v10';
+const APP_VERSION = 'v11';
 
 const $ = (id) => document.getElementById(id);
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
@@ -14,7 +14,6 @@ let editingMed = null, editingWeight = null, editingAppt = null, editingHead = n
 
 $('w-date').value = today();
 $('a-date').value = today();
-$('h-date').value = today();
 $('app-version').textContent = APP_VERSION;
 
 /* ---------- Tabs ---------- */
@@ -148,6 +147,40 @@ function renderAppts() {
 }
 
 /* ---------- Headaches ---------- */
+// A small calendar for choosing one or more days (up to today). Each day becomes its own entry.
+let calSel = new Set(), calMonth = null;
+function calPick(days) {
+  calSel = new Set(days);
+  const [y, m] = days[0].split('-').map(Number);
+  calMonth = new Date(y, m - 1, 1);
+  renderCal();
+}
+function renderCal() {
+  const y = calMonth.getFullYear(), m = calMonth.getMonth(), t = today();
+  const pad = (n) => String(n).padStart(2, '0');
+  const first = new Date(y, m, 1).getDay(), count = new Date(y, m + 1, 0).getDate();
+  const nextOk = `${y}-${pad(m + 1)}-${pad(count)}` < t;
+  let cells = '<span></span>'.repeat(first);
+  for (let d = 1; d <= count; d++) {
+    const iso = `${y}-${pad(m + 1)}-${pad(d)}`;
+    cells += `<button type="button" data-day="${iso}" aria-pressed="${calSel.has(iso)}"${iso > t ? ' disabled' : ''}${iso === t ? ' class="today"' : ''}>${d}</button>`;
+  }
+  $('h-cal').innerHTML = `<div class="cal-head">
+      <button type="button" data-cal="-1" aria-label="Previous month">‹</button>
+      <span>${calMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}</span>
+      <button type="button" data-cal="1" aria-label="Next month"${nextOk ? '' : ' disabled'}>›</button>
+    </div>
+    <div class="cal-grid">${['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((w) => `<span class="wd">${w}</span>`).join('')}${cells}</div>`;
+  $('h-days-n').textContent = calSel.size > 1 ? `· ${calSel.size} chosen` : '';
+}
+$('h-cal').addEventListener('click', (e) => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  if (b.dataset.cal) calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + Number(b.dataset.cal), 1);
+  if (b.dataset.day) { const d = b.dataset.day; calSel.has(d) ? calSel.delete(d) : calSel.add(d); }
+  renderCal();
+});
+calPick([today()]);
+
 // Newest first, with a count and average pain for the last 30 days.
 const fmtTime = (s) => { if (!s) return ''; const [h, m] = s.split(':').map(Number); return new Date(2000, 0, 1, h, m).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
 function renderHeads() {
@@ -222,7 +255,7 @@ function resetApptForm() {
 function resetHeadForm() {
   editingHead = null;
   $('h-form').reset();
-  $('h-date').value = today();
+  calPick([today()]);
   $('h-submit').textContent = 'Save';
   closeForm('h');
 }
@@ -266,7 +299,7 @@ document.addEventListener('click', async (e) => {
   if (t.dataset.hedit) {
     const h = heads.find((x) => x.id === t.dataset.hedit); if (!h) return;
     editingHead = h.id;
-    $('h-date').value = h.date; $('h-time').value = h.time || ''; $('h-pain').value = String(h.pain);
+    calPick([h.date]); $('h-time').value = h.time || ''; $('h-pain').value = String(h.pain);
     $('h-dur').value = h.duration || ''; $('h-med').value = h.medicine || ''; $('h-note').value = h.note || '';
     $('h-submit').textContent = 'Save changes';
     openForm('h', 'h-note');
@@ -301,10 +334,14 @@ $('a-form').addEventListener('submit', async (e) => {
 
 $('h-form').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const body = { date: $('h-date').value, time: $('h-time').value || '', pain: Number($('h-pain').value), duration: $('h-dur').value.trim(), medicine: $('h-med').value.trim(), note: $('h-note').value.trim() };
-  if (!body.date || !(body.pain >= 1 && body.pain <= 10)) return;
+  const days = [...calSel].sort();
+  const body = { time: $('h-time').value || '', pain: Number($('h-pain').value), duration: $('h-dur').value.trim(), medicine: $('h-med').value.trim(), note: $('h-note').value.trim() };
+  if (!days.length) { status('Choose at least one day.'); return; }
+  if (!(body.pain >= 1 && body.pain <= 10)) return;
   try {
-    await db.put('heads', { id: editingHead || newId(), ...body, updatedAt: new Date().toISOString() });
+    // One entry per day chosen. When editing, the first day keeps the original entry.
+    const now = new Date().toISOString();
+    for (const [i, date] of days.entries()) await db.put('heads', { id: (i === 0 && editingHead) || newId(), date, ...body, updatedAt: now });
     resetHeadForm(); status('');
   } catch (err) { status('Couldn’t save that headache. Try again.'); }
   await loadAll();

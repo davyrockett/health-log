@@ -135,3 +135,14 @@ td.note { min-width: 140px; }
   .tabs { gap: 2px; }
 }
 @media (prefers-reduced-motion: no-preference) { button { transition: background .15s, color .15s, border-color .15s; } }
+.pain { font-weight: 600; }
+.pain.p1 { color: var(--accent); }
+.pain.p2 { color: var(--up); }
+.pain.p3 { color: var(--danger); }
+/* Five tabs and the gear fit across a phone */
+@media (max-width: 430px) {
+  .tab { padding: 10px 3px; font-size: 13px; }
+  .tabs { gap: 0; justify-content: space-between; }
+}
+@media (max-width: 370px) { .tab { font-size: 12px; } }
+select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23888' stroke-width='1.8'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }

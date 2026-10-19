@@ -1,14 +1,14 @@
 'use strict';
 
 /* ---------- On-device database (IndexedDB) ----------
-   Three "stores" (like tables) for your data: weigh-ins, medications and
-   doctor's appointments.
-   A third, "deleted", remembers what was deleted and when, so sync can
+   Four "stores" (like tables) for your data: weigh-ins, medications,
+   doctor's appointments and headaches.
+   Another, "deleted", remembers what was deleted and when, so sync can
    tell the other device to delete it too.
    Everything here returns a Promise. */
 const DB_NAME = 'healthlog';
-const DB_VERSION = 2; // 2 added appointments
-const STORES = ['weights', 'meds', 'appts'];
+const DB_VERSION = 3; // 2 added appointments, 3 headaches
+const STORES = ['weights', 'meds', 'appts', 'heads'];
 const ALL_STORES = [...STORES, 'deleted'];
 
 let dbPromise = null;

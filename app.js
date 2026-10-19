@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v9';
+const APP_VERSION = 'v10';
 
 const $ = (id) => document.getElementById(id);
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
@@ -9,15 +9,16 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const status = (msg) => { $('status').textContent = msg || ''; $('status').hidden = !msg; };
 const sign = (x) => (x > 0 ? '+' : x < 0 ? '−' : '±');
 
-let weights = [], meds = [], appts = [], loaded = false;
-let editingMed = null, editingWeight = null, editingAppt = null, confirming = null;
+let weights = [], meds = [], appts = [], heads = [], loaded = false;
+let editingMed = null, editingWeight = null, editingAppt = null, editingHead = null, confirming = null;
 
 $('w-date').value = today();
 $('a-date').value = today();
+$('h-date').value = today();
 $('app-version').textContent = APP_VERSION;
 
 /* ---------- Tabs ---------- */
-const TABS = ['weight', 'meds', 'appts', 'settings'];
+const TABS = ['weight', 'meds', 'appts', 'heads', 'settings'];
 function showTab(name, remember = true) {
   if (!TABS.includes(name)) name = 'weight';
   for (const t of TABS) {
@@ -146,6 +147,33 @@ function renderAppts() {
     ${past.length ? `<h3 class="sub">Past</h3>${past.map((a) => card(a, false)).join('')}` : ''}`;
 }
 
+/* ---------- Headaches ---------- */
+// Newest first, with a count and average pain for the last 30 days.
+const fmtTime = (s) => { if (!s) return ''; const [h, m] = s.split(':').map(Number); return new Date(2000, 0, 1, h, m).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
+function renderHeads() {
+  const sorted = [...heads].sort((a, b) => b.date.localeCompare(a.date) || (b.time || '').localeCompare(a.time || ''));
+  $('h-meta').textContent = heads.length ? `${heads.length} logged` : '';
+  if (!sorted.length) {
+    $('h-summary').innerHTML = '';
+    $('h-list').innerHTML = loaded ? `<div class="empty">No headaches logged. Tap <b>Add Headache</b> to log one: the date, how bad it was, and anything that might help spot a pattern.</div>` : '';
+    return;
+  }
+  const d = new Date(); d.setDate(d.getDate() - 29); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+  const recent = sorted.filter((x) => x.date >= d.toISOString().slice(0, 10) && x.date <= today());
+  const avg = recent.length ? recent.reduce((s, x) => s + x.pain, 0) / recent.length : 0;
+  $('h-summary').innerHTML = `<div class="summary">
+      <div class="stat"><div class="k">Last 30 days</div><div class="v">${recent.length}<small>${recent.length === 1 ? 'headache' : 'headaches'}</small></div></div>
+      ${recent.length ? `<div class="stat"><div class="k">Average pain</div><div class="v">${avg.toFixed(1)}<small>/ 10</small></div></div>` : ''}
+      <div class="stat"><div class="k">Last one</div><div class="v" style="font-size:1.3rem">${esc(fmtDate(sorted[0].date))}</div></div>
+    </div>`;
+  $('h-list').innerHTML = sorted.map((h) => `<div class="appt">
+      <div class="appt-top"><span class="appt-date">${esc(fmtDate(h.date))}${h.time ? ` · ${esc(fmtTime(h.time))}` : ''}</span><span class="act"><button class="link" data-hedit="${esc(h.id)}">Edit</button>${delBtn('heads', h.id)}</span></div>
+      <div class="appt-reason"><span class="pain p${Math.min(3, Math.ceil(h.pain / 3.4))}">Pain ${h.pain}/10</span>${h.duration ? ` <span class="muted">· ${esc(h.duration)}</span>` : ''}</div>
+      ${h.medicine ? `<div>Medicine: ${esc(h.medicine)}</div>` : ''}
+      ${h.note ? `<p class="appt-results">${esc(h.note)}</p>` : ''}
+    </div>`).join('');
+}
+
 function delBtn(store, id) {
   if (confirming === store + ':' + id)
     return `<span class="confirm">Delete?<button class="link danger" data-confirm="${store}:${esc(id)}">Yes</button><button class="link" data-cancel>No</button></span>`;
@@ -156,11 +184,12 @@ function renderAll() {
   renderWeights();
   renderMeds();
   renderAppts();
-  $('connect-banner').hidden = !(loaded && !sync.isOn() && !weights.length && !meds.length && !appts.length);
+  renderHeads();
+  $('connect-banner').hidden = !(loaded && !sync.isOn() && !weights.length && !meds.length && !appts.length && !heads.length);
 }
 
 async function loadAll() {
-  [weights, meds, appts] = await Promise.all([db.getAll('weights'), db.getAll('meds'), db.getAll('appts')]);
+  [weights, meds, appts, heads] = await Promise.all([db.getAll('weights'), db.getAll('meds'), db.getAll('appts'), db.getAll('heads')]);
   loaded = true;
   renderAll();
 }
@@ -189,6 +218,13 @@ function resetApptForm() {
   $('a-date').value = today();
   $('a-submit').textContent = 'Save';
   closeForm('a');
+}
+function resetHeadForm() {
+  editingHead = null;
+  $('h-form').reset();
+  $('h-date').value = today();
+  $('h-submit').textContent = 'Save';
+  closeForm('h');
 }
 function resetWeightForm() {
   editingWeight = null;
@@ -227,6 +263,14 @@ document.addEventListener('click', async (e) => {
     $('a-submit').textContent = 'Save changes';
     openForm('a', 'a-results');
   }
+  if (t.dataset.hedit) {
+    const h = heads.find((x) => x.id === t.dataset.hedit); if (!h) return;
+    editingHead = h.id;
+    $('h-date').value = h.date; $('h-time').value = h.time || ''; $('h-pain').value = String(h.pain);
+    $('h-dur').value = h.duration || ''; $('h-med').value = h.medicine || ''; $('h-note').value = h.note || '';
+    $('h-submit').textContent = 'Save changes';
+    openForm('h', 'h-note');
+  }
   if (t.dataset.wedit) {
     const w = weights.find((x) => x.id === t.dataset.wedit); if (!w) return;
     editingWeight = w.id;
@@ -238,9 +282,11 @@ document.addEventListener('click', async (e) => {
 $('m-cancel').addEventListener('click', resetMedForm);
 $('w-cancel').addEventListener('click', resetWeightForm);
 $('a-cancel').addEventListener('click', resetApptForm);
+$('h-cancel').addEventListener('click', resetHeadForm);
 $('w-open').addEventListener('click', () => { resetWeightForm(); openForm('w', 'w-lbs'); });
 $('m-open').addEventListener('click', () => { resetMedForm(); openForm('m', 'm-name'); });
 $('a-open').addEventListener('click', () => { resetApptForm(); openForm('a', 'a-date'); });
+$('h-open').addEventListener('click', () => { resetHeadForm(); openForm('h', 'h-pain'); });
 
 $('a-form').addEventListener('submit', async (e) => {
   e.preventDefault();
@@ -250,6 +296,17 @@ $('a-form').addEventListener('submit', async (e) => {
     await db.put('appts', { id: editingAppt || newId(), ...body, updatedAt: new Date().toISOString() });
     resetApptForm(); status('');
   } catch (err) { status('Couldn’t save that appointment. Try again.'); }
+  await loadAll();
+});
+
+$('h-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const body = { date: $('h-date').value, time: $('h-time').value || '', pain: Number($('h-pain').value), duration: $('h-dur').value.trim(), medicine: $('h-med').value.trim(), note: $('h-note').value.trim() };
+  if (!body.date || !(body.pain >= 1 && body.pain <= 10)) return;
+  try {
+    await db.put('heads', { id: editingHead || newId(), ...body, updatedAt: new Date().toISOString() });
+    resetHeadForm(); status('');
+  } catch (err) { status('Couldn’t save that headache. Try again.'); }
   await loadAll();
 });
 

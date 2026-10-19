@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Health Log</title>
-  <meta name="description" content="Weight, medications and doctor's appointments, kept in one place.">
+  <meta name="description" content="Weight, medications, doctor's appointments and headaches, kept in one place.">
   <meta name="robots" content="noindex">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icons/icon-192.png">
@@ -29,6 +29,7 @@
     <button class="tab" role="tab" id="tab-weight" aria-controls="weight" data-tab="weight">Weight</button>
     <button class="tab" role="tab" id="tab-meds" aria-controls="meds" data-tab="meds">Medications</button>
     <button class="tab" role="tab" id="tab-appts" aria-controls="appts" data-tab="appts">Appointments</button>
+    <button class="tab" role="tab" id="tab-heads" aria-controls="heads" data-tab="heads">Headaches</button>
     <button class="tab tab-end" role="tab" id="tab-settings" aria-controls="settings" data-tab="settings" aria-label="Settings" title="Settings"><svg class="gear" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="dot" id="sync-dot" hidden></span></button>
   </nav>
 
@@ -92,6 +93,30 @@
       </div>
     </form>
     <div id="a-list"></div>
+  </section>
+
+  <section id="heads" role="tabpanel" aria-labelledby="tab-heads" hidden>
+    <div class="sec-head"><h2>Headaches</h2><span class="meta" id="h-meta"></span></div>
+    <div class="add-row"><button class="primary" type="button" id="h-open">Add Headache</button></div>
+    <form id="h-form" autocomplete="off" hidden>
+      <label class="narrow">Date<input id="h-date" type="date" required></label>
+      <label class="narrow">Started<input id="h-time" type="time" title="Optional"></label>
+      <label class="narrow">Pain (1–10)<select id="h-pain" required>
+        <option value="">Choose</option>
+        <option value="1">1 · barely there</option><option value="2">2</option><option value="3">3 · mild</option><option value="4">4</option>
+        <option value="5">5 · moderate</option><option value="6">6</option><option value="7">7 · bad</option><option value="8">8</option>
+        <option value="9">9</option><option value="10">10 · worst</option>
+      </select></label>
+      <label class="narrow">How long<input id="h-dur" type="text" maxlength="60" placeholder="e.g. 3 hours"></label>
+      <label>Medicine taken<input id="h-med" type="text" maxlength="200" placeholder="Optional, e.g. Ibuprofen 400 mg"></label>
+      <label class="wide">Notes<textarea id="h-note" rows="2" maxlength="2000" placeholder="Optional: possible cause, what helped, where it hurt"></textarea></label>
+      <div class="btns">
+        <button class="primary" type="submit" id="h-submit">Save</button>
+        <button class="ghost" type="button" id="h-cancel">Cancel</button>
+      </div>
+    </form>
+    <div id="h-summary"></div>
+    <div id="h-list"></div>
   </section>
 
   <section id="settings" role="tabpanel" aria-labelledby="tab-settings" hidden>

@@ -2,7 +2,7 @@
 //
 // IMPORTANT: whenever any file below changes, bump VERSION.
 // That is how phones learn there's an update to download.
-const VERSION = 'v12';
+const VERSION = 'v13';
 const CACHE = `healthlog-${VERSION}`;
 
 const ASSETS = [
@@ -10,6 +10,7 @@ const ASSETS = [
   './index.html',
   './move.js',
   './suite.js',
+  './share.js',
   './styles.css',
   './db.js',
   './sync.js',

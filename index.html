@@ -171,11 +171,21 @@
       </dl>
       <p class="muted">On iPhone: open this page in Safari, tap Share, then <strong>Add to Home Screen</strong>. On Mac: Safari → File → <strong>Add to Dock</strong>.</p>
     </div>
+
+    <div class="card" data-share>
+      <h3>Share</h3>
+      <p class="muted" data-share-link></p>
+      <div class="btns">
+        <button type="button" class="ghost" data-share-copy>Copy link</button>
+        <button type="button" class="ghost" data-share-send hidden>Share…</button>
+      </div>
+    </div>
   </section>
 </div>
 
 <script src="move.js" data-keep="healthlog" data-guard="idb"></script>
 <script src="suite.js" defer></script>
+<script src="share.js" defer></script>
 <script src="db.js"></script>
 <script src="sync.js"></script>
 <script src="app.js"></script>

@@ -1,6 +1,6 @@
 'use strict';
 
-const APP_VERSION = 'v17';
+const APP_VERSION = 'v18';
 
 const $ = (id) => document.getElementById(id);
 const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
@@ -414,6 +414,8 @@ function renderSync() {
   } else if (sync.status === 'ok') {
     el.textContent = `✓ Up to date · synced ${timeAgoText(last)}`;
     el.classList.add('ok');
+  } else if (sync.status === 'busy') {
+    el.textContent = `GitHub isn’t answering properly right now. Your changes are saved here and will sync by themselves.${last ? ` Last synced ${timeAgoText(last)}.` : ''}`;
   } else if (sync.status === 'offline') {
     el.textContent = `Offline. Your changes are saved here and will sync when you’re back online.${last ? ` Last synced ${timeAgoText(last)}.` : ''}`;
   } else if (problem) {

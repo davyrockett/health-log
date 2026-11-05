@@ -11,6 +11,7 @@
    The access key stays on this device only (browser storage). */
 
 const SYNC_FILE = 'data.json';
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 const SYNC_KEYS = {
   repo: 'healthlog-sync-repo',
   token: 'healthlog-sync-token',
@@ -30,7 +31,7 @@ function syncSet(key, value) {
 class SyncError extends Error {
   constructor(kind, message) {
     super(message);
-    this.kind = kind; // 'auth' | 'offline' | 'missing' | 'conflict' | 'other'
+    this.kind = kind; // 'auth' | 'offline' | 'missing' | 'conflict' | 'busy' | 'other'
   }
 }
 
@@ -65,6 +66,8 @@ async function github(repo, token, path, options = {}) {
   }
   if (res.status === 401) throw new SyncError('auth', 'The access key isn’t working (expired or mistyped).');
   if (res.status === 403) throw new SyncError('auth', 'The access key doesn’t have permission to read and write this project.');
+  // 500–599: a hiccup on GitHub's side, not a problem with the key or the data. Try again shortly.
+  if (res.status >= 500) throw new SyncError('busy', `GitHub had a hiccup (${res.status}).`);
   return res;
 }
 
@@ -162,7 +165,14 @@ const sync = {
     const token = syncGet(SYNC_KEYS.token);
     try {
       for (let attempt = 1; ; attempt++) {
-        const { data: remote, sha } = await downloadData(repo, token);
+        let remote, sha;
+        try {
+          ({ data: remote, sha } = await downloadData(repo, token));
+        } catch (e) {
+          if (e.kind !== 'busy' || attempt >= 4) throw e;
+          await wait(attempt * 3000);
+          continue;
+        }
         const before = await db.snapshot();
         const merged = await db.merge((local) => {
           if (mode === 'replace-local' && remote) return mergeCopies({}, remote);
@@ -174,14 +184,20 @@ const sync = {
           await uploadData(repo, token, remoteShape(merged), sha);
           break;
         } catch (e) {
-          if (e.kind !== 'conflict' || attempt >= 3) throw e;
-          mode = 'merge'; // someone uploaded in between: merge their version too
+          // conflict: someone uploaded in between, merge their version too.
+          // busy: GitHub hiccuped. The upload may even have gone through, so
+          // download again; if GitHub already has it all, we're done.
+          if (!['conflict', 'busy'].includes(e.kind) || attempt >= 4) throw e;
+          if (e.kind === 'busy') await wait(attempt * 3000);
+          mode = 'merge';
         }
       }
       syncSet(SYNC_KEYS.last, new Date().toISOString());
       this.setStatus('ok');
     } catch (e) {
       this.setStatus(e.kind || 'other', e.message);
+      // Still hiccuping after a few tries: try again in a minute by itself.
+      if (e.kind === 'busy') { clearTimeout(this.timer); this.timer = setTimeout(() => this.run(), 60 * 1000); }
     } finally {
       this.running = false;
       if (this.again) { this.again = false; this.run(); }
